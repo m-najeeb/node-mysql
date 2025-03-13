@@ -1,36 +1,38 @@
 require("dotenv").config();
 const express = require("express");
 const logger = require("morgan");
-const bodyParser = require("body-parser");
 const cors = require("cors");
-const mongoSanitize = require("express-mongo-sanitize");
 const helmet = require("helmet");
-
-// const setup = require("./api/routes");
-const mySqlDb = require("./database");
+const rateLimit = require("express-rate-limit");
+const sequelize = require("./database");
+const setup = require("./api/routes");
 
 const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware setup
 app.use(express.json());
-app.use(helmet()); // Set security HTTP headers
-app.use(mongoSanitize()); // Sanitize MongoDB queries
+app.use(express.urlencoded({ extended: true }));
+app.use(helmet()); // Security headers
 app.use(cors()); // Enable CORS
 app.options("*", cors()); // Handle preflight requests
-app.use(bodyParser.json()); // Parse JSON bodies
-app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
+
+// Rate Limiting (Prevents abuse)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests, please try again later",
+});
+app.use(limiter);
 
 // Custom logger format
 logger.token("status-format", (req, res) => {
   const status = res.statusCode;
-  if (status >= 200 && status < 300) {
-    return "🟢"; // Success
-  } else if (status >= 300 && status < 400) {
-    return "🔵"; // Redirect
-  } else {
-    return "🔴"; // Error
-  }
+  return status >= 200 && status < 300
+    ? "🟢"
+    : status >= 300 && status < 400
+    ? "🔵"
+    : "🔴";
 });
 app.use(logger(":method :url :status-format :status :response-time ms"));
 
@@ -39,22 +41,19 @@ app.get("/", (req, res) => {
   res.send("Hello, Server is Up and Running!");
 });
 
-// MySQL connection
+// MySQL connection check
+(async () => {
+  try {
+    await sequelize.sync({ alter: true });
+    console.log("Database Synced");
+  } catch (error) {
+    console.error("Database Sync Error:", error);
+  }
+})();
 
-mySqlDb
-  .query("SELECT 1")
-  .then(() => {
-    console.log("Database Connected Successfully");
-  })
-  .catch((error) => {
-    console.error("DB Connection Error:", error);
-    process.exit(1);
-  });
-
-// Setup routes
-// setup(app);
+setup(app);
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server Running on port http://localhost:${port}`);
+  console.log(`Server Running on http://localhost:${port}`);
 });
