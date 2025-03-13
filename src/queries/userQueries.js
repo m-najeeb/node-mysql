@@ -25,6 +25,10 @@ class UserQueries {
   async getUserById(id) {
     return await User.findByPk(id);
   }
+
+  async getUserDetailsById(id) {
+    return await User.findOne({ where: { id } });
+  }
 }
 
 module.exports = new UserQueries();

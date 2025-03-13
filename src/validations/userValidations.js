@@ -29,6 +29,18 @@ class UserValidation {
 
     return schema.validate(userData, { abortEarly: false });
   }
+
+  profileEdit(userData) {
+    const schema = Joi.object({
+      id: Joi.number().required(),
+      profilePicture: Joi.string().uri().optional(),
+      fullName: Joi.string().trim().max(55).optional(),
+      phone: Joi.string().trim().length(11).optional(),
+      country: Joi.string().trim().optional(),
+    });
+
+    return schema.validate(userData, { abortEarly: false });
+  }
 }
 
 module.exports = new UserValidation();

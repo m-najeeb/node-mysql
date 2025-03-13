@@ -98,6 +98,45 @@ class UserImplementation {
       );
     }
   }
+
+  async profileEdit(data) {
+    try {
+      const id = data.id;
+      const user = await UserQueries.getUserDetailsById(id);
+
+      if (!user) {
+        ResponseService.status = constants.CODE.RECORD_NOT_FOUND;
+        return ResponseService.responseService(
+          constants.STATUS.ERROR,
+          [],
+          messages.USER_NOT_FOUND
+        );
+      }
+
+      if (data.profilePicture) user.profilePicture = data.profilePicture;
+      if (data.fullName) user.fullName = data.fullName;
+      if (data.country) user.country = data.country;
+      if (data.phone) user.phone = data.phone;
+
+      const response = await user.save();
+
+      if (response) {
+        ResponseService.status = constants.CODE.OK;
+        return ResponseService.responseService(
+          constants.STATUS.SUCCESS,
+          response,
+          messages.PROFILE_UPDATED
+        );
+      }
+    } catch (error) {
+      ResponseService.status = constants.CODE.INTERNAL_SERVER_ERROR;
+      return ResponseService.responseService(
+        constants.STATUS.EXCEPTION,
+        error.message,
+        messages.EXCEPTION
+      );
+    }
+  }
 }
 
 module.exports = new UserImplementation();
