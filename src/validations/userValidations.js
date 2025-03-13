@@ -20,6 +20,15 @@ class UserValidation {
 
     return schema.validate(userData, { abortEarly: false });
   }
+
+  signIn(userData) {
+    const schema = Joi.object({
+      email: Joi.string().trim().email().required(),
+      password: Joi.string().required(),
+    });
+
+    return schema.validate(userData, { abortEarly: false });
+  }
 }
 
 module.exports = new UserValidation();

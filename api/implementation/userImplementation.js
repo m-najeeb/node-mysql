@@ -54,6 +54,50 @@ class UserImplementation {
       );
     }
   }
+
+  async signIn(data) {
+    try {
+      const user = await UserQueries.getUserByEmail(data.email);
+
+      if (!user) {
+        ResponseService.status = constants.CODE.RECORD_NOT_FOUND;
+        return ResponseService.responseService(
+          constants.STATUS.ERROR,
+          [],
+          messages.USER_NOT_FOUND
+        );
+      }
+
+      const isMatch = await bcrypt.compare(data.password, user.password);
+
+      if (!isMatch) {
+        ResponseService.status = constants.CODE.BAD_REQUEST;
+        return ResponseService.responseService(
+          constants.STATUS.ERROR,
+          [],
+          messages.INVALID_CREDENTIALS
+        );
+      }
+
+      user.isOnline = true;
+
+      await user.save();
+
+      ResponseService.status = constants.CODE.OK;
+      return ResponseService.responseService(
+        constants.STATUS.SUCCESS,
+        { user: user },
+        messages.RECORD_FOUND
+      );
+    } catch (error) {
+      ResponseService.status = constants.CODE.INTERNAL_SERVER_ERROR;
+      return ResponseService.responseService(
+        constants.STATUS.EXCEPTION,
+        error.message,
+        messages.EXCEPTION
+      );
+    }
+  }
 }
 
 module.exports = new UserImplementation();
