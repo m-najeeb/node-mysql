@@ -41,6 +41,21 @@ class UserValidation {
 
     return schema.validate(userData, { abortEarly: false });
   }
+
+  changePassword(userData) {
+    const schema = Joi.object({
+      email: Joi.string().trim().email().required(),
+      currentPassword: Joi.string().required(),
+      newPassword: Joi.string()
+        .regex(constants.PASSWORD.REGEX)
+        .required()
+        .messages({
+          "string.pattern.base": constants.PASSWORD.MESSAGE_FORMAT,
+        }),
+    });
+
+    return schema.validate(userData, { abortEarly: false });
+  }
 }
 
 module.exports = new UserValidation();

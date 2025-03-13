@@ -137,6 +137,67 @@ class UserImplementation {
       );
     }
   }
+
+  async changePassword(data) {
+    try {
+      const { email, currentPassword, newPassword } = data;
+      const user = await UserQueries.getUserByEmail(email);
+      if (!user) {
+        ResponseService.status = constants.CODE.RECORD_NOT_FOUND;
+        return ResponseService.responseService(
+          constants.STATUS.ERROR,
+          [],
+          messages.EMAIL_NOT_FOUND
+        );
+      }
+
+      const isPasswordMatch = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
+      if (!isPasswordMatch) {
+        ResponseService.status = constants.CODE.NOT_ACCEPTED;
+        return ResponseService.responseService(
+          constants.STATUS.ERROR,
+          [],
+          messages.PASSWORD_MISMATCH
+        );
+      }
+
+      const isNewPasswordSame = await bcrypt.compare(
+        newPassword,
+        user.password
+      );
+      if (isNewPasswordSame) {
+        ResponseService.status = constants.CODE.NOT_ACCEPTED;
+        return ResponseService.responseService(
+          constants.STATUS.ERROR,
+          [],
+          messages.PASSWORD_SAME_AS_OLD
+        );
+      }
+      const salt = await bcrypt.genSalt(10);
+      const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+      const response = await UserQueries.updateUserPassword(
+        email,
+        hashedNewPassword
+      );
+
+      ResponseService.status = constants.CODE.OK;
+      return ResponseService.responseService(
+        constants.STATUS.SUCCESS,
+        response,
+        messages.PASSWORD_UPDATED
+      );
+    } catch (error) {
+      ResponseService.status = constants.CODE.INTERNAL_SERVER_ERROR;
+      return ResponseService.responseService(
+        constants.STATUS.EXCEPTION,
+        error.message,
+        messages.EXCEPTION
+      );
+    }
+  }
 }
 
 module.exports = new UserImplementation();

@@ -29,6 +29,10 @@ class UserQueries {
   async getUserDetailsById(id) {
     return await User.findOne({ where: { id } });
   }
+
+  async updateUserPassword(email, newPassword) {
+    return await User.update({ password: newPassword }, { where: { email } });
+  }
 }
 
 module.exports = new UserQueries();
