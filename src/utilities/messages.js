@@ -26,6 +26,8 @@ module.exports = {
   SUCCESSFULLY_SIGN_UP: "Successfully Sign Up",
   TOKEN_EXPIRED: "Token Expired",
   USERNAME_EXISTS: "Username Exists",
+  USER_ALREADY_DELETED: "User Already Deleted",
+  USER_DELETED: "User Deleted",
   USER_NOT_FOUND: "User Not Found",
   UNAUTHORIZED: "Unauthorized",
 };

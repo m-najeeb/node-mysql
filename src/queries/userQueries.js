@@ -33,6 +33,14 @@ class UserQueries {
   async updateUserPassword(email, newPassword) {
     return await User.update({ password: newPassword }, { where: { email } });
   }
+
+  async deleteUserById(id) {
+    const user = await User.findOne({ where: { id: id, isDeleted: false } });
+    if (!user) return null;
+    user.isDeleted = true;
+    user.deletedAt = new Date();
+    return await user.save();
+  }
 }
 
 module.exports = new UserQueries();
